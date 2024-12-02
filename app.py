@@ -1,3 +1,15 @@
+# Pillow ANTIALIAS compatibility layer
+try:
+    import PIL.Image
+    if not hasattr(PIL.Image, 'ANTIALIAS'):
+        try:
+            PIL.Image.ANTIALIAS = PIL.Image.Resampling.LANCZOS
+        except AttributeError:
+            # Fallback for different Pillow versions
+            PIL.Image.ANTIALIAS = 1
+except ImportError:
+    pass
+
 import streamlit as st
 import numpy as np
 import cv2
@@ -16,7 +28,7 @@ class ImageTextTranslator:
         self.reader = easyocr.Reader([
             'en', 'es', 'fr', 'de', 'it', 
             'no'  # Added Norwegian
-        ])
+        ], gpu=False)
         
         # Language options
         self.source_languages = [
