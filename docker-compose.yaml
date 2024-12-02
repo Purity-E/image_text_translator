@@ -6,7 +6,9 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - .:/app
-      - ./.aws:/root/.aws 
+      - .:/app  
+      - ./.aws:/root/.aws  
     environment:
       - AWS_PROFILE=default
+      - PYTHONUNBUFFERED=1  
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
