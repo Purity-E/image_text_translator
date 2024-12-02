@@ -1,6 +1,7 @@
 boto3==1.26.137
 botocore==1.29.137
 streamlit==1.22.0
+pillow>=9.0.0
 easyocr==1.6.2
 numpy<2.0
 opencv-python-headless
