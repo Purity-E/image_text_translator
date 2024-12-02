@@ -14,11 +14,13 @@ COPY requirements.txt .
 
 
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir pillow --upgrade && \
     pip install --default-timeout=100 --no-cache-dir -r requirements.txt
 
 
 COPY . .
 
+RUN python -c "import easyocr; easyocr.Reader(['en'], gpu=False)"
 
 EXPOSE 8501
 
