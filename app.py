@@ -27,19 +27,32 @@ class ImageTextTranslator:
         # Initialize EasyOCR reader with multiple languages
         self.reader = easyocr.Reader([
             'en', 'es', 'fr', 'de', 'it', 
-            'no'  # Added Norwegian
+            'no'
         ], gpu=False)
         
-        # Language options
-        self.source_languages = [
-            'auto', 'en', 'es', 'fr', 'de', 'it', 
-            'ja', 'ko', 'ru', 'ar', 'no', 'sw'  # Added Norwegian
-        ]
-        self.target_languages = [
-            'en', 'es', 'fr', 'de', 'it', 
-            'ja', 'ko', 'ru', 'ar', 
-            'sw', 'no'  # Added Norwegian and Swahili
-        ]
+        self.target_languages = {
+        'English': 'en', 
+        'Spanish': 'es', 
+        'French': 'fr', 
+        'German': 'de', 
+        'Chinese': 'zh-cn', 
+        'Japanese': 'ja', 
+        'Arabic': 'ar', 
+        'Swahili': 'sw',
+        'Norwegian':'no'
+        }
+
+        self.source_languages = {
+        'English': 'en', 
+        'Spanish': 'es', 
+        'French': 'fr', 
+        'German': 'de', 
+        'Chinese': 'zh-cn', 
+        'Japanese': 'ja', 
+        'Arabic': 'ar', 
+        'Swahili': 'sw',
+        'Norwegian':'no'
+        }
 
     def preprocess_image(self, image):
         """
@@ -130,17 +143,29 @@ def main():
         ["Upload Image", "Camera Input"]
     )
 
-    # Language selection
-    source_lang = st.sidebar.selectbox(
+    target_languages = translator.target_languages
+    source_languages = translator.source_languages
+    source_key = st.sidebar.selectbox(
         "Source Language", 
-        translator.source_languages, 
+        list(source_languages.keys()), 
         index=0
     )
-    target_lang = st.sidebar.selectbox(
+    target_key = st.sidebar.selectbox(
         "Target Language", 
-        translator.target_languages, 
+        list(target_languages.keys()), 
         index=0
     )
+
+    source_lang = source_languages[source_key]
+    target_lang = target_languages[target_key]
+
+    # Session state to manage translation
+    if 'extracted_text' not in st.session_state:
+        st.session_state.extracted_text = ""
+    if 'translated_text' not in st.session_state:
+        st.session_state.translated_text = ""
+    if 'show_translation' not in st.session_state:
+        st.session_state.show_translation = False
 
     # Input image based on method
     if input_method == "Upload Image":
@@ -176,27 +201,28 @@ def main():
             st.image(image, channels="BGR")
         
         # Extract text
-        extracted_text = translator.extract_text(image)
+        st.session_state.extracted_text = translator.extract_text(image)
         
-        with col2:
-            st.subheader("Extracted Text")
-            st.text_area("Original Text", extracted_text, height=150)
+        # Translate button
+        if st.session_state.extracted_text:
+            if st.button("Translate Text"):
+                # Translate text
+                st.session_state.translated_text = translator.translate_text(
+                    st.session_state.extracted_text, 
+                    source_lang=source_lang, 
+                    target_lang=target_lang
+                )
+                st.session_state.show_translation = True
         
-        # Translate if text is extracted
-        if extracted_text:
-            # Translate text
-            translated_text = translator.translate_text(
-                extracted_text, 
-                source_lang=source_lang, 
-                target_lang=target_lang
-            )
-            
-            st.subheader("Translated Text")
-            st.text_area(
-                f"Translation ({source_lang} → {target_lang})", 
-                translated_text, 
-                height=150
-            )
+        # Show translation if button is pressed
+        if st.session_state.show_translation:
+            with col2:
+                st.subheader("Translated Text")
+                st.text_area(
+                    f"Translation ({source_lang} → {target_lang})", 
+                    st.session_state.translated_text, 
+                    height=150
+                )
 
 if __name__ == "__main__":
     main()
